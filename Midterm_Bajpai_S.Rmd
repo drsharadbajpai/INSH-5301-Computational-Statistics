@@ -1,0 +1,377 @@
+---
+title: "Midterm"
+author: "Sharad Bajpai"
+date: "11/12/2019"
+output: 
+  pdf_document: 
+    latex_engine: xelatex
+---
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
+
+1. Using R, write a program to calculate all the prime numbers less than 100. A prime number is a positive integer greater than 1 that is divisible (without remainder) only by 1 and itself. Create the program by testing each number from 2 to 100 against all integers less than it using %%. Your function should return a vector of all the primes < 100.
+```{r}
+prime<-2
+n<-100
+for (i in 1:n){
+  for (j in 2:(i-1))
+  {
+    if (i%%j==0)
+    {
+      break
+    }
+    if (j==(i-1))
+    {
+      prime<-c(prime,i)
+    }
+  }
+}
+print(prime)
+```
+
+2. Using R, create a histogram of the result from 1 using ggplot. Be sure to nicely label your axes and
+title the graph.
+```{r}
+library(ggplot2)
+index<-seq(1,25)
+df.prime<-as.data.frame(cbind(index, prime))
+ggplot(data = df.prime, mapping = aes(x=index, y = prime)) + geom_histogram(stat="identity") +
+xlab("Position Index") +
+ylab("Prime Number Value") +
+ggtitle("Histogram of First 100 Prime Numebers")+
+theme(plot.title=element_text(hjust=0.5), plot.subtitle = element_text(hjust=0.5))
+```
+3. You flip a coin five times.
+a. What’s the chance of getting three or more heads in a row?
+
+H: Getting a Head in a flip.
+
+T: Getting a Tail in a flip.
+
+S: Sample space/ Total outcomes=2
+
+5 = 32
+
+PS: Possible outcomes for an event ’Getting three or more heads in a row:
+
+HHHTT
+
+HHHTH
+
+THHHT
+
+TTHHH
+
+HTHHH
+
+HHHHT
+
+THHHH
+
+HHHHH
+
+There are total 8 possible outcomes here, PS=8
+
+So,
+$$Probability\: of \:getting\: three\: or\: more\: heads\: in\: a\: row \:(P)=\frac{PS}{S}$$
+$$P=\frac{8}{32}=\frac{1}{4}=0.25$$
+
+b. What’s the chance of getting three or more heads in a row conditional on knowing the first flip was a heads?
+
+Here,
+
+S: Sample space/Total outcomes= 2
+
+4 = 16
+
+PS: Possible outcomes for’getting three or more heads in a row conditional on knowing the first flip was a heads’
+
+HHHTT
+
+HHHTH
+
+HHHHT
+
+HHHHH
+
+HTHHH
+
+PS= 5
+
+So,
+$$Probability=\frac{PS}{S}=\frac{5}{15}=\frac{1}{3}=0.3125$$
+
+
+4. NASA has declared that the Earth is likely to be hit by an asteroid this year based on an astronomical observation it has made. These things are hard to judge for certain, but it is known that the test NASA used is pretty good – it has a sensitivity of 99% and a false positive rate of only 1%. It is further known that the general probability of an asteroid hitting earth in any given year is 1 in 100,000. What is the probability we will actually be hit by an asteroid this year given NASA’s test? 
+
+Here, Probability of an astriod hitting the Earth:
+
+$$P(H) = \frac{1}{100000} = 0.00001$$
+
+Probability of a positive result in NASA’s experiment:
+$$P(+|H) = 0.99$$
+Probability of a positive result, Earth not getting hit by an astriod:
+$$P(+|NH) = 0.01$$
+So, as per Bayes theorem,
+$$P(+) = P(+|H)P(H)+P(+|NH)P(NH)=(0.99)(0.00001)+(0.01)(1− 0.00001)=0.010$$
+Where,
+
+P(H): Probability of hitting of astriod without the positive test
+
+P(NH): Probability not hitting of the astroid without the positive test
+
+$$P(H|+) = P(+|H)P(H)P(+) = (0.99)(0.00001)0.010 = 0.00099 ∗ 100 = 0.099$$
+Therefore, the probability that we will be hit by an astroid is 0.099% which is even less than 1%.
+
+5. The average number of snow days in Boston in a winter month is 1. Assuming these events follow a poisson distribution, calculate (using R) the probability of getting 5 or more snow days in a month.
+
+A Poisson distribution is a discrete probability distribution that expresses the probability of a given number of events occurring in a fixed interval of time or space if these events occur with a known constant rate and independently of the time since the last event.
+Here, λ = 1
+```{r}
+prob_snow<-0
+for (i in 5:30)
+{
+prob_snow<-prob_snow+dpois(x=i,lambda=1)
+}
+print(prob_snow)
+```
+We can also calculate this by R buit-in function
+```{r}
+avg <- 1
+n <- 5
+ppois(q = n - 1, lambda = avg, lower.tail = FALSE)
+```
+
+This indicates that probability of having snow for 5 or more days in a month is 0.00365, which is very less.
+
+6. You want to know how many hours of sleep the average college student gets. You start out with a preliminary survey of 10 people, and get the following data (in hours): 7,6,5,8,6,6,4,5,8,7. You hypothesize that despite what the doctors say, the average college student does not get 7 hours of sleep a night. What does your survey say? State your null hypothesis, research hypothesis (two tailed), and calculate your threshold value, test statistic, and p value. Do you reject the null or not?
+
+Null Hypothesis:$H_0$:$\mu=7$: Average college students do get 7 hours of sleep
+
+Research Hypothesis:$H_1$:$\mu\neq7$:Average college students do NOT get 7 hours of sleep.
+
+$$Total\:number\:of\:People\:in\:Sample:n=10$$
+$$Mean:\bar{x}=\frac{Sum\:of\:all\:observations}{Total\:number\:of\:observations\:(n)}$$
+$$\bar{x}=\frac{7+6+5+8+6+6+4+5+8+7}{10}=\frac{62}{10}=6.2$$
+Now we will calculate:
+
+i. Standard deviation(SD)
+
+ii.Standard error(se)
+
+iii.Degree of freedom(df)
+
+iv.Test statistics(TS)
+
+v. Threshold or Critical value for 95% Confidence interval
+
+To calculate
+
+i. Standard deviation in R:
+```{r}
+total<-c(7,6,5,8,6,6,4,5,8,7)
+sd(total)
+```
+ii. Standard error(se):
+$$se=\frac{sd}{\sqrt{n}}=\frac{1.316561}{\sqrt{10}}=0.1417$$
+iii. Degree of freedom(df):
+$$df=n-1=10-1=9$$
+iv. Test of Statistics(TS):
+$$TS=\frac{\bar{x}-\mu}{se}=\frac{6.2-7}{0.417}=-1.92$$
+v. Threshold (T) or Critical value for 95% Confidence interval
+```{r}
+Threshold<-qt(0.975,9)
+print(Threshold)
+```
+Therefore,
+$$Threshold:T\neq2.262$$
+Alternatively, we can calculate p-value:
+```{r}
+pvalue <- 2*(1-pt(-1.92,9))
+pvalue
+```
+Conclusion:
+$$-2.26 < -1.92(TS) < 2.26$$
+$$pvalue > \alpha$$
+$$1.91 > 0.05 $$
+As the Test statistics (TS) does not exceed the Threshold value(T) AND the p-value is greater than the alpha value, we fail to reject the Null hypothesis, our test is in favor of the Null hypothesis. That is it may be true that the average students do get 7 hours of sleep.
+
+
+7. Despite the disappointing results in 6, you are confident in your hypothesis. Assuming your sample standard deviation and mean do not change and you want to survey as few people as possible, how many additional people would you have to survey to reject the null at the 0.05 level?
+
+Here, we can Reject the null hypothesis if, either our p-value is less or equal to α that is 0.05 or the threshold or the critical value should be greater than the $T_{statistic}$
+$$TestStatistics=\frac{\bar{x}-\mu}{se}=\frac{\sqrt{n}*(\bar{x}-\mu)}{sd}$$
+$Since, sd, \bar{x},\mu \:are\:all\:same\:for\:any\:sample\:then,$
+$$Thresholds(pvalue = 0.95)= \pm T_{distribution}(0.975,n-1)$$
+By increasing $n$ we increase the $T_{statistics}$ to exceed the Threshold to reject the Null-Hypothesis. And we know,
+$$-2.26 < T_{statistics}=\frac{\bar{x}-\mu}{\frac{s}{\sqrt{n}}} < 2.26$$
+By increasing $n$ we increase the $T_{statistics}$ to exceed the Thresholds to reject the Null-Hypothesis.
+$$n=(\frac{T_{distribution}(0.975, n_{old}-1)*sd}{\bar{x}-\mu})^2=(\frac{2.26*1.37}{6.2-7})^2=(\frac{2.9}{-0.8})^2=13.48$$
+We will approximate $n$=14 and substitute $df=n-1=13$ into our $T_{distribution}$: Now, we will calculate the upper threshold using new $df$
+
+```{r}
+qt(0.975,13)
+```
+Lower threshold with new $df$
+
+As we can note here, this threshold is slightly less than the previous threshold. Now if we repeat the same steps as above with $n=13$ will end up with $n=12.6$ so the best number to go for is 13. Hence, we will calculate: $T_{statistics}$ and Threshold.
+
+$$T_statistics=\frac{\bar{x}-\mu}{\frac{sd}{\sqrt{n}}}=\frac{-0.8}{\frac{1.3}{\sqrt{13}}}=-2.19$$
+$$Threshold=\pm2.16$$
+$$T_{statistics} < Threshold$$
+Therefore, $n$=13 is correct, so we will have to add 3 more people to our original sample so that we can reject the null hypothesis with $\alpha=0.05$
+
+8. You survey the same 10 people during finals period, and get the following hours: 5,4,5,7,5,4,5,4,6,5. Do college students get significantly less sleep than usual during finals?
+
+Here we have two dependant samples and null hypothesis:
+
+$H_0:$Null Hypothesis is, College students get significantly same sleep during finals week and during normal times.
+$$H_0:\mu_1=\mu_2$$
+$H_1$:Research Hypothesis is, COllege students do not significantly get same sleep during finals week and during normal times
+
+$$H_1:\mu_1\neq\mu_2$$
+We can calculate mean, standard deviation and standard error for our samples:
+```{r}
+data1 <- c(7,6,5,8,6,6,4,5,8,7) # normal times
+data2 <- c(5,4,5,7,5,4,5,4,6,5) # during finals
+m1 <- mean(data1)
+s1 <- sd(data1)
+se1 <- s1 / sqrt(length(data1))
+m2 <- mean(data2)
+s2 <- sd(data2)
+se2 <- s2 / sqrt(length(data2))
+```
+For sample data from normal times,
+$$n1=10, \bar{x}_1=6.2,s_1=1.3,se_1=0.41$$
+For sample data from final times,
+$$n2=10,\bar{x}_2=5,s_2=0.94,se_2=0.29$$
+So,
+$$x_{difference}=\bar{x}_1-\bar{x}_2=6.2-5=1.2$$
+Now we will calculate Difference in standard error
+$$se_{diff}=\sqrt{se_1^2 + se_2^2}=\sqrt{(0.41)^2+(0.29)^2}=\sqrt{0.168+0.084}=\sqrt{0.252}=0.50$$
+Now we will calculate Test Statistics
+$$TS=\frac{\bar{x}_1-\bar{x}_2}{se_{diff}}=\frac{1.2}{0.50}=2.4$$
+Now we will calculate degrees of freedom, as the $n$ is same but $s$ is different we will use:
+$$df=\frac{s_{diff}^4}{\frac{se_1^4}{(n_1-1)}+\frac{se_2^4}{(n_2-1)}}$$
+$$df=\frac{0.0625}{\frac{0.0282}{9}+\frac{0.007}{9}}=\frac{0.0625}{0.0031+0.0007}=\frac{0.0625}{0.003139734}=15.92\approx16$$
+Now, we will calculate the Threshold values in R:
+```{r}
+UpperT <- qt(0.975,16)
+UpperT
+
+LowerT<-qt(0.025,16)
+LowerT
+```
+
+In this case, the Test statistics falls under the Critical region so here we will reject the null hypothesis in favor of our research hypothesis. Thus, College students do not get significantly the same sleep during finals week as compared to normal times.
+
+
+9. You are a very bad gardener, and hypothesize that feeding houseplants vodka might help them relax and grow better. You perform an experiment to test your hypothesis, giving 15 houseplants water spiked with vodka, and 15 houseplants water alone. This looks pretty bad for the treatment, but being as good at statistics as you are bad at gardening, you test it using the chi-square test. What are your results?
+
+Research question: Is there any conncetion between Vodka and growth/lives of plants ?
+
+Null Hypothesis, $H_0$ : The variables are independent of each other. 
+
+That is, adding Vodka to plants and growth of plants is independent of each other.
+
+Research Hypothesis, $H_1$ : The variables are NOT independent of each other(they are dependent).
+
+That is, adding vodka doesn’t affects the growth of the plants.
+
+Step:1
+
+First, let us calculate the total number of plants:
+$$n=(4+11)+(8+7)=30$$
+Step 2:
+Calculate expected value of each cell,
+$$f_e=\frac{(row\:total)(column\:total)}{overall\:total}$$
+So, following are the observed values $f_o$:
+```{r}
+fo <- tibble::tribble(~condition, ~live, ~die, "treatment", 4L, 11L, "control", 8L, 7L)
+fo
+```
+
+Following are the expected values fe:
+```{r}
+fe <- tibble::tribble(~condition, ~live, ~die, ~total,
+                        
+                      "treatment", 6, 9, 15,
+                      "control", 6, 9, 15, "total", 12,18,30)
+fe
+```
+Step 3:
+Calculate chi-sq or $X^2$ value:
+$$X^2=\sum \frac{(f_o-f_1)^2}{f_e}=\frac{(4-6)^2}{6}+\frac{(11-9)^2}{9}+\frac{(8-6)^2}{6}+\frac{(7-9)^2}{9}=2.22$$
+Step 4:
+Calculate degrees of freedom $df$
+$$df=(r-1)(c-1)=(2-1)(2-1)=1$$
+
+Step 5:
+Calculate threshold values at 95% confidence level in R:
+```{r}
+Threshold_95 <- qchisq(0.95,1)
+Threshold_95
+```
+
+Interpretation and conclusion:
+
+Since the chi-sq or $X^2 = 2.22$ does not exceeds the Threshold = 3.84. We are unable to reject the Null hypothesis which is, adding vodka to plant does not affect the growth of the plants, both variables are independent of each other.
+
+
+10. Perhaps you got things backwards, and plants need more stimulation to thrive. So you adjust your experiment into three treatment groups: water, vodka, and coffee. 
+The overall mean is 50 days (as we said, you’re a bad gardener). Use an F test to determine if there is any significant difference among these three groups.
+
+$H_0:$ Null Hypothesis: There is no significant difference between these groups. That is, life of the plants is not affected by any x parameter.
+
+$$H_0:\mu_1=\mu_2=...\mu_G$$
+$H_1:$ Research Hypothesis: At least one of these groups is different.
+$$H_1:At\:least\:one\:of\:these\:groups\:is\:different$$
+Given,
+
+$Water:\mu_1=50,s_1=10,n_1=20$
+
+$Vodka:\mu_2=45,s_2=7,n_2=10$
+
+$Coffee:\mu_3=55,s_3=4,n_3=10$
+
+$Overall\:Mean:\bar{x}=50$
+
+N: Total number of all data: N=40
+
+G: Numberof Groups: G=3
+
+Now, Step 1:
+
+Before calculating the F-statistics we will calculate the variance in between the groups and variance within the groups:
+
+$$average\:variance\:between\:groups=\frac{n_1(\bar{x_1}-\bar{x})^2+...+n_G(\bar{x_G}-\bar{x})^2}{G-1}$$
+
+Step 2:
+$$average\:variance\:between\:groups=\frac{20(50-50)^2+10(45-50)^2+10(55-50)^2}{3-1}$$
+
+$$average\:variance\:between\:groups=\frac{20(0)^2+10(-5)^2+10(5)^2}{2}=\frac{500}{2}$$
+$$average\:variance\:within\:groups=\frac{(n_1-1)s_1^2+...+(n_G-1)s_G^2}{N-G}$$
+$$average\:variance\:within\:groups=\frac{(20-1)10^2+(10-1)7^2+(10-1)4^2}{40-3}$$
+$$average\:variance\:within\:groups=\frac{(19)10^2+(9)7^2+(9)4^2}{37}=\frac{1900+441+144}{37}=\frac{2485}{37}=67.162$$
+Step 3:
+Now we will calculate $F_{statistics}$
+$$F_{statistics}=\frac{average\:variance\:between\:groupds}{average\:variance\:within\:groups}$$
+$$F_{statistics}=\frac{250}{67.162}=3.722$$
+Step 4:
+Degrees of freedom $df:$
+$$df_1=G-1=3-1=2$$
+$$df_2=N-G=40-3=37$$
+Step 5:
+Now in order to determine whether we can reject the Null Hypothesis we will calculate the threshold value in R: For $\alpha=0.05$
+```{r}
+qf(1-0.05,2,37)
+```
+Conclusion:
+
+The $F_{statistics}>Threshold$, we CAN reject the NUll Hypothesis and our test is in favor of the Research Hypothesis which is that atleast one group is different. That is, life of the plants is affected by what we feed/water the plants with.
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```

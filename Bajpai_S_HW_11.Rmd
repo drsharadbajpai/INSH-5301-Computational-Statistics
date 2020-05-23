@@ -1,0 +1,164 @@
+---
+title: "Week11"
+author: "Sharad Bajpai"
+date: "11/30/2019"
+output: pdf_document
+---
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
+
+The dataset that I am using in this assignment is the iq.items dataset
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(psych)
+library(dplyr)
+library(GPArotation)
+library(factoextra)
+
+
+data("iqitems")
+iq.items<-iqitems[,1:16]
+iq.items[iq.items=="9"]=NA
+iq.items<-data.frame(iq.items)
+iq.items1<-na.omit(iq.items)
+names(iq.items1)
+```
+
+Rescaling variables to have a mean of 0 and a sd of 1
+
+```{r}
+iq.items1.scaled <- scale(iq.items1, center = TRUE, scale = TRUE)
+```
+1. Examine the factor eigenvalues or variances (or the sdev or standard deviations as reported by prcomp or princomp, which you then need to square to get the variances). Plot these in a scree plot and use the “elbow” test to guess how many factors one should retain. What proportion of the total variance does your subset of variables explain?
+
+Running princomp command
+```{r}
+pcaA <- princomp(iq.items1.scaled)
+summary(pcaA)
+names(pcaA)
+```
+Covariance
+```{r}
+cov_Data <- cov(iq.items1.scaled)
+```
+Getting eigen values of Principal Components:
+
+Use the one with eigen value greater than 1
+
+```{r}
+eig<-eigen(cov_Data)
+str(eig)
+```
+
+Here, we can see the Principal component 1,2 and 3 have eigen values greater than one. So we will choose these three principal components.
+
+Plotting of Scree Plot
+```{r}
+scree(iq.items1.scaled)
+```
+Scree plot from manual eigenvector method:
+```{r}
+plot(eig$values,type="b")
+```
+
+Now, we will plot a graph of the proportion of the total variance in the data explained by the factors
+
+```{r}
+plot(cumsum(eig$values)/sum(eig$values), xlab = "Principl Component",
+ylab = "Cumulative Proportion of Variance Explained",
+type = "b")
+```
+INTERPRETATION:
+
+From the above tests, we can interpret that the principal component 1, 2 and 3 have the eigenvalues 3.858, 1.645, 1.219 respectively, that are greater than 1 so we will consider these three as the principal components(PC). From the test summary we can see that these PC explain 42.79% of variation in the data. Also, from the Scree plot we can see the eigenvalues after the 3rd value it goes from the steep decline(elbow effect) and then there is the flat area, where the presumption is the flat are is all the factors that are just noise. If 42.79%is an adequate amount of variation explained in the data, then we must keep these first three factors under consideration.
+
+
+2. Examine the loadings of the factors on the variables (sometimes called the “rotation” in the function output) – ie, the projection of the factors on the variables – focusing on just the first one or two factors. Sort the variables by their loadings, and try to interpret what the first one or two factors “mean.” This may require looking more carefully into the dataset to understand exactly what each of the variables were measuring. You can find more about the data in the psych package using ?psych or visiting.
+
+Ans 2:
+
+For first few factors,
+```{r}
+f_a <- fa(iq.items1.scaled,nfactors=3,fm="pa")
+colnames(f_a$loadings) <- c("f_a1", "f_a2","f_a3")
+f_a1 <- f_a$loadings[,1]
+f_a2 <- f_a$loadings[,2]
+f_a3 <- f_a$loadings[,3]
+f_a1[order(f_a1)]
+```
+
+For factors 2 and 3:
+
+```{r}
+f_a2[order(f_a2)]
+f_a3[order(f_a3)]
+```
+Now to see the projection of factors on the variables: We can visualize the factors by calling the function fa.diagram( ). The square boxes are the observed variables, and the ovals are the unobserved factors. The
+straight arrows are the loadings, the correlation between the factor and the observed variable(s). The curved arrows are the correlations between the factors. If no curved arrow is present, then the correlation between the factors is not great.
+
+```{r}
+fa.diagram(f_a)
+```
+
+INTERPRETATION The three factors: 
+Verbal Intelligence, Non-Verbal Intelligence and Visual-Spatial Intelligence.
+
+In the first factor (f_a1),the variables reasons and letters are strongly loaded/rotated on the positive side. These variables ( letter as alphanumeric series and reason as verbal reasoning) describe the underlying factor Verbal Intelligence. At the negative side, there are matrices which comes under matrix reasoning task. These variables describe the underlying factor as Verbal Intelligence.
+
+In the second factor (f_a2),the variables rotates and matrices are strongly loaded on the positive side. These variables (rotate as spatial rotations and matrix as matrix reasoning task) describe the combination of two underlying factor Non-Verbal Intelligence and Visual-Spatial Intelligence. At the negative side, there are letters and reasons which comes under Verbal Intelligence factor.
+
+In the third factor (fact_a3),the variables rotates are strongly lodded on positive side. These variables describe the underlying factor Visual-Spatial Intelligence.
+
+3. First use k-means and examine the centers of the first two or three clusters. How are they similar to and different from the factor loadings of the first couple factors?
+
+Ans.3 Here, k determines how similar an individual is to its assigned cluster compared to other clusters. We want to have a maximum internal cohesion and separation compared to other clusters, that is a maximum
+average silhouette width.
+
+```{r}
+fviz_nbclust(iq.items1.scaled, kmeans, method = "silhouette")
+kout <- kmeans(iq.items1.scaled, centers=2, nstart = 16)
+centroids <- kout$centers
+topvars_centroid1 <- centroids[1,order(centroids[1,])]
+tail(topvars_centroid1)
+topvars_centroid2 <- centroids[2,order(centroids[2,])]
+tail(topvars_centroid2)
+```
+INTERPRETATION:
+The first cluster identifies a cluster of IQ items with variables that strongly loaded on to factor Verbal Intelligence (f_a1)positively and strongly loaded on to the factor Visual-Spatial Intelligence negatively.
+Additionally, the Second cluster identifies a cluster of IQ items with variables that strongly loaded on to the factor Visual-Spatial Intelligence positively. It seems clusters are associated with variables that load postively or negatively in a particular factor.
+
+4. Next use hierarchical clustering. Print the dendrogram, and use that to guide your choice of the number of clusters. Use cutree to generate a list of which clusters each observation belongs to. Aggregate the data by cluster and then examine those centers (the aggregate means) as you did in (3). Can you interpret all of them meaningfully using the methods from (3) to look at the centers?
+
+Ans.4
+```{r}
+hout <- hclust(dist(iq.items1.scaled),method="complete")
+plot(hout,labels=FALSE) +abline(a=15,b=0,col="red")+abline(a=12,b=0,col="blue")
+plot(hout)
+rect.hclust(hout,3)
+```
+INTERPRETATION:
+From the cluster dendogram we can see that there are three clusters that are very distinct from each other at height of 12.This means that the data is tightly grouped into 3 clusters that are much distinct from one other.
+Furthermore,
+```{r}
+cluster<-as.vector(cutree(hout,3))
+clust_means<- aggregate(iq.items1.scaled,by=list(cluster),FUN=mean)
+tail(unlist(sort(clust_means[1,names (clust_means)])))
+tail(unlist(sort(clust_means[2,names (clust_means)])))
+tail(unlist(sort(clust_means[3,names (clust_means)])))
+```
+
+INTERPREATION:
+From the above, the first group identifies cluster of IQ items that are strongly loaded positive on to the factor Verbal Intelligence. Second group identifies more bunch of Non-Verbal Intelligence and Visual-Spatial Intelligence. And, third group identifies cluster of IQ items that are strongly loaded positive on to the Visual-Spatial Intelligence.
+
+5. From the factor and cluster analysis, what can you say more generally about what you have learned about your data?
+
+Ans: 
+The first analysis, the factor analysis helps to understand and confirm that that how 16 variables of IQ items data can be listed under three different factors: f_a1-Verbal Intelligence, f_a2-Non-Verbal Intelligence and f_a3= Visual-Spatial Intelligence. But beheath those factors also some are strongly loaded (or rotated postively) towards the positive and some loaded towards the negative side. While performing K-means cluster analysis, we to 2 centers only, one cluster had a bunch of variables loaded under Visual-Spatial Intelligence on the positive side and other cluster had a bunch of variables also loaded under Visual-Spatial Intelligence but on the negative side. In Hierarchical cluster analysis, we evidently got three groups which seemed similar to our factor analysis. We can infer from this, that each group consists of the IQ items that are loaded as positive under each factor.Therefore, both the factor analysis and cluster analysis for the given data set helps to confirm that we can choose up to 3 major factors that helps to group all 16 IQ items under these 3 factors of Verbal Intelligence, Non-Verbal Intelligence and Visual-Spatial Intelligence.
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```

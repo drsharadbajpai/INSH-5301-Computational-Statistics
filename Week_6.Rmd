@@ -1,0 +1,200 @@
+---
+title: "Week_6"
+author: "Sharad Bajpai"
+date: "10/27/2019"
+output: pdf_document
+---
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
+```{r}
+library("tidyverse")
+library("dplyr")
+library("DT")
+
+```
+
+a. Based on the exit poll results, is age independent of Party ID or not? Conduct a chi-squared test by
+hand, showing each step in readably-formatted latex.
+
+Step 1:
+
+Null Hypothesis $H_0$: Age is independent of Party ID
+
+Research Hypothesis $H_1$: Party ID and age are dependent variables.
+
+$f_{e} = \frac{\textrm{(row total)(column total)}}{\textrm{overall total}}$
+
+$\frac{\textrm{(302)(199)}}{\textrm{792}}=75.88131$  
+
+$\frac{\textrm{(212(199)}}{\textrm{792}}=53.26768$  
+
+$\frac{\textrm{(278)(199)}}{\textrm{792}}=69.85101$  
+
+$\frac{\textrm{(302)(197)}}{\textrm{792}}=75.11869$  
+
+$\frac{\textrm{(212(197)}}{\textrm{792}}=52.73232$  
+
+$\frac{\textrm{(278)(197)}}{\textrm{792}}=69.14899$   
+
+$\frac{\textrm{(302)(198)}}{\textrm{792}}=75.5$  
+
+$\frac{\textrm{(212(198)}}{\textrm{792}}=53.0$  
+
+$\frac{\textrm{(278)(198)}}{\textrm{792}}=69.5$
+
+$\frac{\textrm{(302)(198)}}{\textrm{792}}=75.5$  
+
+$\frac{\textrm{(212(198)}}{\textrm{792}}=53.0$  
+
+$\frac{\textrm{(278)(198)}}{\textrm{792}}=69.5$  
+
+$\chi^{2}= \sum \frac{(f_{o}-f_{e})^{2}}{f_{e}}$  
+
+$\chi^{2}= \sum \frac{(86-75.88131)^{2}}{75.88131}={1.34931539}$  
+
+$\chi^{2}= \sum \frac{(52-53.26768)^{2}}{53.26768}={0.03016847}$  
+
+$\chi^{2}= \sum \frac{(61-69.85101)^{2}}{69.85101}={1.12153539}$  
+
+$\chi^{2}= \sum \frac{(72-75.11869)^{2}}{75.11869}={0.1294779}$  
+
+$\chi^{2}= \sum \frac{(51-52.73232)^{2}}{52.73232}={0.0569090}$  
+
+$\chi^{2}= \sum \frac{(74-69.14899)^{2}}{69.14899}={0.3403130}$ 
+
+$\chi^{2}= \sum \frac{(73-75.5)^{2}}{75.5}={0.082781457}$  
+
+$\chi^{2}= \sum \frac{(55-53.0)^{2}}{53.0}={0.075471698}$  
+
+$\chi^{2}= \sum \frac{(70-69.5)^{2}}{69.5}={0.003597122}$  
+
+$\chi^{2}= \sum \frac{(71-75.5)^{2}}{75.5}={0.26821192}$  
+
+$\chi^{2}= \sum \frac{(54-53.0)^{2}}{53.0}={0.01886792}$  
+
+$\chi^{2}= \sum \frac{(73-69.5)^{2}}{69.5}={0.17625899}$ 
+
+Adding all the above results gives us the following answer,
+
+$\chi^{2}= 3.652908$
+
+$df = (3-1)(4-1)$  
+
+$df = 6$  
+
+
+```{r}
+q_crit<-qchisq(.95, df=6)
+q_crit
+
+q_pvalue<-1-pchisq(3.65, df=6)
+q_pvalue
+```
+
+$\chi_{crit}=12.59159$  
+
+$p_{value}=0.7235272$  
+
+Conclusion: Fail to reject the null hypothesis, age is independent of party affiliation.
+
+b. Verify your results using R to conduct the test.
+
+```{r '1b'}
+agepartyID <- data.frame(age1=c(86,52,61), age2=c(72,51,74), age3=c(73,55,70), age4=c(71,54,73), row.names=c("Democrats","Independents","Republicans"))
+
+agepartyID
+
+chisq.test(agepartyID)
+
+```
+
+The values and conclusions are consistent between the 'by hand' and R $\chi^2$ test.
+
+
+2.
+a. Now test for independence using ANOVA (an F test). Your three groups are Democrats, Independents, and Republicans. The average age for a Democrat is 43.3, for an Independent it’s 44.6, and for a Republican it’s 45.1. The standard deviations of each are D: 9.1, I: 9.2, R: 9.2. The overall mean age is 44.2. Do the F test by hand, again showing each step.
+
+Ans:
+Null Hypothesis: $H_0=\mu_D=\mu_1=\mu_R$: Mean of Democrat = Mean of Independence = Mean of Republicans.
+
+Research Hypothesis:$H_1$: Mean of at least one is different.
+
+To calcualte the ANOVA test statistics,
+
+$F statistics=\frac{AverageVarianceBetweenGroups}{AverageVarianceWithinGroups}$
+
+$BetweenGroups=\frac{\eta_1(\bar{y_1}-\bar{y_2})+...\eta_G(\bar{y_G}-\bar{y_G})}{df = G-1}$
+
+$BetweenGroups=\frac{301(43.3-44.2)^2 + 212(44.6-44.2)^2 + 278(45.1-22.2)^2}{3-1}$
+
+$BetweenGroups=239.14$
+
+$WithinGroups=\frac{(\eta-1)s_1^2+.....+(\eta_G - 1)s_G^2}{df=N-G}$
+
+Here N=sum in all=792 so,
+
+$WithinGroups=\frac{(302-1)*9.1^2 + (212-1)*9.2^2+(278-1)*9.2^2}{792-3}=83.64$
+
+Here N=sum in all=792 so,
+
+$WithinGroups=\frac{(302-1)*9.1^2+(212-1)*9.2^2+(278-1)*9.2^2}{792-3}=83.64$
+
+So,
+
+$F statistics=\frac{239.14}{83.64}=2.85$
+
+$df_1=3-1=2$
+
+$df_2=792-3=789$
+
+We can calculate p value in R:
+```{r}
+1-pf(2.85, 2, 789)
+```
+
+To calculate F threshold
+```{r}
+qf(0.95,2,789)
+```
+
+We fail to reject the null hypothesis at the 95% confidence interval after the results of the f-test with the summary data provided. 
+Thus, we can conclude that the average age is the same across all the parties present in our dataset.
+
+b. Check your results in R using simulated data. Generate a simulated dataset by creating three vectors:
+Democrats, Republicans, and Independents. Each vector should be a list of ages, each with a length equal
+to the number of Democrats, Independents, and Republicans in the table above, and the appropriate mean and sd based on 2.a (use rnorm to generate the vectors). Combine all three into a single dataframe with two variables: age, and a factor that specifies D, I, or R. Then conduct an F test using R’s aov function on that data and compare the results to 2a. Do your results match 2a? If not, why not?
+
+```{r}
+Democrats <- rnorm(302,43.3,9.1)
+Independents <- rnorm(212,44.6,9.2)
+Republicans <- rnorm(278,45.1,9.2)
+```
+
+Combining into a dataframe
+
+```{r}
+DE <- cbind("D",Democrats)
+IN <- cbind("I",Independents)
+RE <- cbind("R",Republicans)
+ageparty <- rbind(DE,IN,RE)
+ageparty <- cbind(as.factor(ageparty[,1]),as.numeric(ageparty[,2]))
+agepartyDF<-as.data.frame(ageparty)
+head(agepartyDF)
+```
+
+```{r}
+aov_DF <- aov(agepartyDF[,2] ~ agepartyDF[,1], data = agepartyDF)
+
+summary(aov_DF)
+```
+The results from the simulated data experiment do not match the results from 2a. When we take a look at the actual data from the simulation, The fstat value with the experimental data, indicating we reject the null at the 95% confidence level in favor of the research hypothesis which is, "age is different between party affiliations", and they may be dependent variables.
+
+We can see consistency in the data between the input vectors and the data from the dataframe used in the experiment. However, when we compare the actual mean and sd of the experimental data, to the given mean & sd inputs for the rnorm function, we can see that these values are slightly different. The difference between the actual experimental data mean & sd, and the given mean & sd used in the calculations likely accounts for the differing outcome between the anova test in R and the manual F test.
+
+This suggests that an experienced statistician should avoid using summary data for inputs and always run the tests with actual data to avoid significant errors that results in different test outcomes.
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```

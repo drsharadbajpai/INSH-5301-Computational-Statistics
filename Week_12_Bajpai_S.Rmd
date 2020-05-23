@@ -1,0 +1,293 @@
+---
+title: "Week12_Bajpai_S"
+author: "Sharad Bajpai"
+date: "12/7/2019"
+output: 
+  pdf_document: 
+    latex_engine: xelatex
+---
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
+
+Loading the required libraries for this assignment
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(glmnet)
+library(gridExtra)
+library(e1071)
+```
+1. Use your dataset with a continuous dependent variable:
+I am using Wine Quality dataset in this assignment from the website mentioned in the assignment. I am using only the white wine quality data set.
+```{r}
+library(readr)
+
+W_wine.url <- "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv"
+raw_white <- read.csv(W_wine.url, header = TRUE, sep = ";")
+Wine_Q <- raw_white
+str(Wine_Q)
+table(Wine_Q$quality)
+dim(Wine_Q)
+```
+
+
+Checking if there are any NA's in the dataframe
+```{r}
+which(is.na(Wine_Q))
+```
+There are no NA values present in the dataset.
+
+a. Divide your data into two equal-sized samples, the in-sample and the out-sample. Estimate the elastic net model using the in-sample data with at least three levels of alpha (ie, three positions in between full lasso and full ridge; eg, alpha = 0, 0.5, and 1), using cv.glmnet to find the best lambda level for each run. (Remember that glmnet prefers that data be in a numeric matrix format rather than a data frame.)
+
+Dividing data into two equal-sized samples. I am naming them as in_sample and out_sample. 
+Training Set: in_sample
+Test Set: out_sample
+```{r}
+set.seed(10)
+```
+Creating in-sample
+```{r}
+numericvars <- c(1:5, 6:11)
+in_sample_x <- (Wine_Q[1:2449,])
+in_matrix1 <- as.matrix(in_sample_x[,numericvars])
+in_sample_y <-in_sample_x$quality
+```
+Creating out-sample
+```{r}
+out_sample_x <- (Wine_Q[2450:4898,])
+out_matrix1 <- as.matrix(out_sample_x[,numericvars])
+out_sample_y <-out_sample_x$quality
+
+lambdalevels <- 10^seq(7,-2,length=100)
+
+cv.lasso.mod1 <- cv.glmnet(in_matrix1,
+in_sample_y,
+alpha = 1,
+lambda = lambdalevels)#alpha=1(pure lasso)
+plot(cv.lasso.mod1)
+```
+This is a pure lasso model with $\alpha$ = 1
+It has the lambda that gets the best MSE is 09.
+The dotted line on the right is the MSE that is 1 standard error larger which is approximately 8.
+
+```{r}
+predict(cv.lasso.mod1, type="coefficients",
+        s=cv.lasso.mod1$lambda.min)
+```
+
+Here we can see that two variables have become zero value whereas two variables have values close to zero.
+
+```{r}
+elastic.net_cv <- cv.glmnet(in_matrix1,in_sample_y, alpha = 0.5, lambda = lambdalevels)
+#alpha=0.5 (combination of lasso and ridge)
+plot(elastic.net_cv)
+```
+This is a elastic model and Log of ($\lambda$) is on the x-axis whereas Mean-Squared Error is on the y-axis.
+It has the lambda that gets the best MSE at 11, and the dotted line on the right is the MSE that is 1 standard error larger which is somewhat 8.
+```{r}
+predict(elastic.net_cv, type="coefficients", s=elastic.net_cv$lambda.min)
+ridge_cv <- cv.glmnet(in_matrix1,in_sample_y,
+                      
+                      alpha = 0,
+                      lambda = lambdalevels)#alpha=0 (pure ridge)
+plot(ridge_cv)
+```
+This is a ridge model where $\alpha$ = 0.
+It has the lambda that gets the best MSE is 11, and the dotted line on the right is the MSE that is 1 standard error larger which is 11.
+```{r}
+predict(ridge_cv, type="coefficients", s=ridge_cv$lambda.min)
+```
+
+INTERPRETATION
+Here, we have fit the model on sample 1, and then use the fitted coefficients (or other parameters) from sample 1 to predict $\hat{y}$ in sample 2 using the new x values in sample 2.
+This is a black-box procedure: we don’t have to know anything about the method that was used to fit the model in sample 1 or to predict $\hat{y}$ in sample 2.
+
+Here, the most significant $\beta$ coefficients stay as they would be from the regression, and others are shrunk more or less towards 0 depending on their significance levels.
+In full Lasso, As we can see for this data, the best fit is with about 09 coefficients, but we do only one standard error worse (ie, statistically indistinguishable) with a model with only about 4 non-zero coefficients.
+
+In Elastic net, for this data, the best fit is with about 11 coefficients but we do only one standard error worse with a model with only about 8 non-zero coefficients.
+So here, with $\alpha$ = 1, Lasso is the winner! LASSO is good at picking up a small signal through lots of noise. Which means that it has the least Mean square error.
+
+b. Choose the alpha (and corresponding lambda) with the best results (lowest error), and then test that model out-of-sample using the out-sample data.
+
+I am going to choose the full lasso, α = 1.0 with min coefficient:
+```{r}
+lasso.shrinkage=glmnet(out_matrix1,out_sample_y,alpha=1,lambda=lambdalevels)
+plot(lasso.shrinkage,xvar="lambda")
+```
+INTERPRETATION 
+Here we can see the coefficient values are plotted along the y axis, and the (natural log) lambda value along the x axis. As the log lamda increases to around −5 all the coefficient shrinks to 0.
+As it was seen earlier this test shrunk 2 coefficients that can be seen from this graph.
+
+c. Compare your out-of-sample results to regular multiple regression: fit the regression model in-sample, predict yhat out-of-sample, and estimate the error. Which works better?
+
+Calculating MSE for Regular Expressions:
+```{r}
+lmout <- lm(in_sample_y~in_matrix1)
+yhat.r <- cbind(1,out_matrix1) %*% lmout$coefficients
+mse.reg <- sum((out_sample_y - yhat.r)^2)/nrow(out_matrix1)
+mse.reg
+```
+The mean standard error for Regular Expressions is 0.5624571
+
+Calculating MSE for Lasso:
+```{r}
+yhat.l <- predict(cv.lasso.mod1$glmnet.fit,
+                  s=cv.lasso.mod1$lambda.min, newx=out_matrix1)
+mse.las <- sum((out_sample_y - yhat.l)^2)/nrow(out_matrix1)
+mse.las
+```
+The Mean standard error for Lasso is 0.541839
+
+INTERPRETATION:
+
+The Lasso MSE seems better than the regular expression MSE. That means, the lasso model has been successful in shringing the non significant coeffients to zero therefore, decreasing the number of variables.
+
+d. Which coefficients are different between the multiple regression and the elastic net model? What, if anything, does this tell you substantively about the effects of your independent variables on your dependent variable?
+
+These are the coefficients from the multipe regression,
+```{r}
+mv1 <- lm(quality ~fixed.acidity+
+            volatile.acidity+
+            citric.acid +
+            residual.sugar+
+            chlorides+
+            free.sulfur.dioxide +
+            total.sulfur.dioxide+
+            density+
+            pH+
+            sulphates+
+            alcohol ,data=Wine_Q)
+
+summary(mv1)
+```
+
+In Mv:
+Here, coefficients with a significant negative effect are:
+  1. volatile.acidity $\beta$ = −1.863e + 00
+  2. density $\beta$ = −1.503e + 02
+Here, coefficients with a significant positive effect are:
+  1. fixed.acidity $\beta$ = 6.552e − 02
+  2. residual.sugar $\beta$ = 8.148e − 02
+  3. free.sulfur.dioxide $\beta$ = 3.733e − 03
+  4. pH $\beta$ = 6.863e − 01
+  5. sulphates $\beta$ = 6.315e − 01
+  6. alcohol $\beta$ = 1.935e − 01
+Insignificant variables :
+  1. total.sulfur.dioxide
+  2. chlorides
+  3. citric.acid
+The coefficients from the Lasso regression are:
+```{r}
+predict(cv.lasso.mod1, type="coefficients",
+        s=cv.lasso.mod1$lambda.min)
+```
+
+Change in coefficients from MV to Lasso regression:
+  1. fixed.acidity from a positive significant effect from MV got changed to 0 in Lasso
+  2. There is an increase in value of coefficient from MV to Lasso in; residual.sugar, free.sulfur.dioxide, pH ,sulphates and alcohol.
+  3. volatile.acidity still has a negative coefficient, so no change.
+  4. density coefficient has increased from 1.503e+02 to -94
+  5. total.sulfur.dioxide has been removed/ shrunked from our Lasso model
+Rest variable coefficients donot have any significant change from MV to Lasso model.
+
+INTERPRETATION
+Here we can see a change in coefficients because, in regular multiple regression we want β coefficients that maximize the match between predicted y $\hat{y}$ and y and in Lasso regression, instead of just optimizing the fit between $\hat{y}$ and y (which makes the sum in the first equation as small as possible), we minimize that sum while also minimizing the sum of the absolute values of all the $\beta$ coefficients (except the constant). The Lasso model, produces a better fit out-of-sample - and thus is better capturing the true population model, rather than just some random noise. In our data, the Lasso test caused the shrinkage reduced the number of non-0 variables, which means that both statistically insignificant ones and (depending on $\lambda$) the less significant ones get shrunk to 0, leaving many fewer to interpret.
+In my dataset what I could understand from the coefficients of the Lasso regression is that all the included 10 independant variables do not help to predict the quality of white wine, instead the Lasso has helped to eliminate the noise(2 variables) that do not help in predicting better quality of wine.
+
+2. Repeat the same process using your dataset with a binary dependent variable:
+
+For Binary dependent variable:
+```{r}
+Quality_level<- numeric(length(Wine_Q$quality))
+for (i in seq_along(Wine_Q$quality)) {
+if (Wine_Q$quality[i] <= 6 ) {Quality_level[i] <- 0}
+else if(Wine_Q$quality[i]>6) {Quality_level[i] <- 1}
+}
+
+Wine_Q <-data.frame(cbind(Wine_Q,Quality_level))
+
+Wine_Q$Quality_level <- as.factor(Wine_Q$Quality_level)
+Wine_Q2<-as.data.frame(Wine_Q)
+glimpse(Wine_Q2)
+```
+Here we have changed a continuous dependant variable to a binary one. In cells where the value of quality is greater than 6 it is coded as 1 and otherwise it is coded as 0.
+
+a. Divide your data into an in-sample and out-sample as before, and estimate an SVM using at least two different kernels and tune to find the best cost level for each.
+
+Same as ques1,
+```{r}
+set.seed(20)
+```
+Creating in-sample and I am excluding 12 because 12th is the binary variable
+```{r}
+numericvars <- c(1:5, 6:11)
+in_samp<- (Wine_Q2[1:2449,])
+in_smat <- as.matrix(in_samp[,numericvars])
+```
+
+Creating out-sample 
+
+```{r}
+out_samp<- (Wine_Q2[2450:4898,])
+out_smat <- as.matrix(out_samp[,numericvars])
+svmfit <- svm(Quality_level~., data=Wine_Q2, cost=10, kernel="linear")
+summary(svmfit)
+
+costvalues <- 10^seq(-3,2,1)
+tuned.svm <- tune(svm,Quality_level~.,
+                  data=Wine_Q2,
+                  ranges=list(cost=costvalues),
+                  kernel="linear")
+summary(tuned.svm)
+```
+INTERPRETATION
+At the best cost setting (0.01) we got 0% of the points incorrectly classified
+
+b. Chose the kernel and cost with the best results, and then test that model out-of-sample using the out-sample data.
+
+Choosing linear kernel as it has classified 0% of the points incorrectly at the best cost setting 0.01
+```{r}
+costvalues <- 10^seq(-3,2,1)
+lin<- tune(svm,Quality_level~.,
+           data=in_samp ,
+           ranges=list(cost=costvalues),
+           kernel="linear")
+
+yhat.lin <- predict(lin$best.model ,newdata=out_samp)
+table(predicted=yhat.lin, truth=out_samp$Quality_level)
+
+predict_correct<-sum(yhat.lin==out_samp$Quality_level)/length(out_samp$Quality_level)*100
+predict_correct
+```
+
+In the above result, we have classification as 100 % correct.
+
+c. Compare your results to a logistic regression: fit the logit in-sample, predict that out-of-sample, and estimate the accuracy. Which works better?
+
+Comparing with Logistic Regression:
+```{r}
+logit.out <- glm(Quality_level~.,
+data=in_samp,family = "binomial")
+yhat.con <- predict(logit.out,
+newdata=out_samp,
+type="response")
+yhat.reg <- round(yhat.con)
+sum(yhat.reg==out_samp$Quality_level)/length(out_samp$Quality_level)
+```
+
+INTERPRETATION
+In the above example, SVM and logistic regression have the same level of accuracy.
+
+d. Can you make any guesses as to why the SVM works better (if it does)? Feel to speculate, or to research a bit more the output of svm, the meaning of the support vectors, or anything else you can discover about SVMs (no points off for erroneous speculations!).
+
+Specific advantage of the SVM method is its ability to handle high dimensional datasets because of kernel tricks.SVM extends by using kernel tricks, transforming datasets into rich features space, so that complex problems can be still dealt with in the same “linear” fashion. The natural advantage that SVMs have over LRs is the non-linearity obtained via the use of non-linear kernels. If we compare logistic regression with SVMs with non-linear kernels, then SVMs beat LRs hands down. If the data is linearly separable in the input space, then LRs give performance comparable to SVMs, but if the data is non-linearly separable, then LRs gradually worsen depending on how bad the non-linearity is in the data and SVMs win out. While, Logistic Regression produces probabilistic values while SVM produces 1 or 0. So in a few words LR makes not absolute prediction and it does not assume data is enough to give a final decision. 
+Additionally, Non-regularized logistic regression techniques don't work well (in fact, the fitted coefficients diverge) when there's a separating hyperplane, because the maximum likelihood is achieved by any separating plane, and there's no guarantee that you'll get the best one. What you get is an extremely confident model with poor predictive power near the margin.
+
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
+

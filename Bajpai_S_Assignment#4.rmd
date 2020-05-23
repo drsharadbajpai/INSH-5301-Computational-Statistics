@@ -1,0 +1,222 @@
+---
+title: "Week4_Compstats"
+author: "Sharad Bajpai"
+date: "10/7/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1.
+a.
+You get back your exam from problem 3.d, and you got a 45. What is your z score?
+
+Looking at the the previous Assignment, the solution to the given question is:
+
+$$z = \frac{x - \mu}{\sigma}$$
+$$z= \frac{45-70}{10}$$
+$$z= \frac{-25}{10}$$
+$$z= {-2.5}$$
+My z score is -2.5
+
+1.
+b.
+What percentile are you?
+```{r}
+q1b<-pnorm(45, 70, 10)
+q1b
+```
+0.62th percentile
+
+1.
+c.
+What is the total chance of getting something at least that far from the mean, in either direction? (Ie, the chance of getting 45 or below or equally far or farther above the mean.)
+```{r}
+Chance <- 2*pnorm(45, 70, 10)
+Chance
+
+q1b * 2
+q1b
+```
+
+2.
+a.
+Write a script that generates a population of at least 10,000 numbers and samples at random 9 of them.
+```{r}
+set.seed(1);
+population <- rnorm(n=10000, mean=75, sd=10);
+sample1<- sample(population, 9, replace=TRUE);
+sum(sample1)
+
+mean(sample1)
+sd(sample1)
+sample1
+```
+
+2.
+b.
+Calculate by hand the sample mean. Please show your work using proper mathematical notation using latex.
+
+$$mean=\frac{53.61391+78.92610+65.22783+93.52996+71.48750+71.99560+94.88486+77.00829+66.53181}{9}$$
+$$mean = \frac{673.2059}{9}$$
+$$mean = 74.80066$$
+c.
+Calculate by hand the sample standard deviation.
+
+$${\displaystyle SD={\sqrt {{\frac {1}{N-1}}\sum _{i=1}^{N}(x_{i}-{\bar {x}})^{2}}},}$$
+
+$$sd=\sqrt{\frac{(53.61391-74.80066)^2+(78.92610-74.80066)^2+(65.22783-74.80066)^2+(93.52996-74.80066)^2+(71.48750-74.80066)^2+(71.99560-74.80066)^2+(94.88486-74.80066)^2+(77.00829-74.80066)^2+(66.53181-74.80066)^2}{9-1}}$$
+$$sd=\sqrt{\frac{(-21.18675)^2+(4.12544)^2+(-9.57283)^2+(18.7293)^2+(-3.31316)^2+(-2.80506)^2+(20.0842)^2+(2.20763)^2+(-8.26885)^2}{8}}$$
+$$sd=\sqrt{\frac{448.8784+17.01926+91.63907+350.7867+10.97703+7.868362+403.3751+4.87363+68.37388}{8}}$$
+$$sd=\sqrt{\frac{448.8784+17.01926+91.63907+350.7867+10.97703+7.868362+403.3751+4.87363+68.37388}{8}}$$
+$$sd=\sqrt{\frac{1403.791}{8}}$$
+$$sd=\sqrt{175.4739}$$
+$$sd=13.24666$$
+2.
+d. Calculate by hand the standard error.
+$$ se = \frac{s}{\sqrt{n}}$$
+$$ se = \frac{13.24}{\sqrt{9}}$$
+$$ se = \frac{13.24}{3}$$
+
+$$ se = 4.4133$$
+
+e. Calculate by hand the 95% CI using the normal (z) distribution. (You can use R or tables to get the
+score.)
+
+
+$$CI=( \mu - 1.96se \le \bar{x} \le \mu + 1.96se)$$
+$$CI=( 74.80066 - 1.96*4.4133 \le 74.80066 \le 74.80066 + 1.96*4.4133)$$
+$$CI_{0.95}=( 66.15059 \le 74.80066 \le 83.45073)$$
+$$CI_{0.95} = (66.15059, 83.45073)$$
+
+f. Calculate by hand the 95% CI using the t distribution. (You can use R or tables to get the score.)
+
+
+$$CI=(\bar{x}+ T(0.975,8)*se\le \mu \le \bar{x}-T(0.975,8)*se)$$
+T <- qt(0.975,8)
+T
+
+$$74.80066+(2.306004)(4.4133) \le \mu \le 74.80066-(2.3006004)(4.4133) $$
+$$74.80066+10.17709 \le \mu \le 74.80066-10.17709 $$
+$$ 84.97775 \le \mu \le 64.62357 $$
+$$CI_{0.95} = (84.97775, 64.62357)$$
+
+3.
+a. Explain why 2.e is incorrect.
+
+2e is incorrect because the sample size of 9 does not meet the criterion for the Central Limit Theorem,
+where a sample should be least 30 or more in number. When sample size is small,
+our sample statistics are not quite normally distributed around Mu. 
+Since our sample size is small (i.e. less than 30, approximately), 
+T distribution can provide more accurate results.
+
+
+
+b. In a sentence or two each, explain what’s wrong with each of the wrong answers in Module 4.4,
+“Calculating percentiles and scores,” and suggest what error in thinking might have led someone to
+choose that answer. (http://www.nickbeauchamp.com/comp_stats_NB/compstats_04-04.html)
+
+$$3 \pm 2 \times 1.533$$
+This answer is incorrect because the alpha level is incorrectly assumed to be 1 minus or 0.10 and the degrees of freedom (n-1) is incorrectly equated with the n. The standard error is confused with the sample standard deviation
+
+$$3 \pm 1 \times 1.533$$
+This answer is incorrect because the alpha level is incorrectly assumed to be 1 minus or 0.10 and the degrees of freedom (n-1) is incorrectly equated with the n. Although the standard error is correct.
+
+$$3 \pm 2 \times 1.638$$
+This answer is incorrect because the alpha level is incorrectly assumed to be 1 minus or 0.10 and the degrees of freedom (n-1) is correct. The standard error is incorrectly equated with the sample standard deviation.
+
+
+$$3 \pm 1 \times 2.353$$
+This is the correct Answer.
+
+
+$$3 \pm 1 \times 2.132$$
+This answer is incorrect because the degree of freeom (n-1) is incorrect. Although the alpha level is correct and the standard error is correct as well.
+
+
+4.
+a. Based on 2, calculate how many more individuals you would have to sample from your population to shrink your 95% CI by 1/2 (ie, reduce the interval to half the size). Please show your work.
+
+From 2,
+$$ CI_{0.95} = [ 84.97775, 64.62357]$$
+
+$$\bar {x} = 74.80066$$
+
+$$interval = \bar {x} - 64.62357
+           =  74.80066-64.62357$$ 
+           
+$$interval = 10.17709$$
+Reducing the interval by half,
+$$ new interval = 10.17709/2
+                = 5.088545$$
+Since this is a t distribution, from 2f we already know that
+$$ 2.306004*se =CI$$
+$$2.306004*\frac{sd}{\sqrt{n}}=5.088545$$
+$$2.306004*\frac{13.24666}{\sqrt{n}}=5.088545$$
+$$2.306004*\frac{13.24666}{5.088545}=\sqrt{n}$$
+$$2.306004*2.603231=\sqrt{n}$$
+$$2.306004*2.603231=\sqrt{n}$$
+$$6.003061=\sqrt{n}$$
+$$n=36.03674$$
+$$ n = 36$$
+To half the confidence interval we need to consider a sample size of 36.Since we have already sampled 9 individuals, we need to sample 27 more.
+
+b. Say you want to know the average income in the US. Previous studies have suggested that the standard deviation of your sample will be $20,000. How many people do you need to survey to get a 95% cofidence
+interval of ± $1,000? How many people do you need to survey to get a 95% CI of ± $100?
+
+$$ 1.96*se =CI$$
+$$1.96*\frac{sd}{\sqrt{n}}=1000$$
+
+$$1.96*\frac{20000}{\sqrt{n}}=1000$$
+
+$$\sqrt{n}=1.96*\frac{20000}{1000}$$
+
+$$n=1,536.64$$
+$$n=1,536$$
+We need to survey 1537 people to get a 95% confidence interval of ± $1000.
+
+How many people do you need to survey to get a 95% CI of ± $100?
+
+$$1.96*\frac{20000}{\sqrt{n}}=100$$
+$${\sqrt{n}}=1.96*200$$
+
+$$n=153664$$
+
+We need to survey 153,664 people to get a 95% confidence interval of ± $100.
+
+5.
+Write a script to test the accuracy of the confidence interval calculation as in Module 4.3. But
+with a few differences: (1) Test the 99% CI, not the 95% CI. (2) Each sample should be only 20
+individuals, which means you need to use the t distribution to calculate your 99% CI. (3) Run
+1000 complete samples rather than 100. (4) Your population distribution must be something
+1 other than a bimodal normal distribution (as used in the lesson), although anything else is fine,
+including any of the other continuous distributions we’ve discussed so far.
+
+```{r}
+set.seed(1)
+nruns <- 1000
+samples1 <- 20
+tval<-qt(0.995,samples1-1)#denotes 99% CI
+sample_summary <- matrix(NA,nruns,3)
+for(j in 1:nruns){
+  sampler <- rep(NA,samples1)
+  for(i in 1:samples1){
+    sampler[i] <- runif(1,4,16) # considering a uniform distribution with bounds(4,16).
+  }
+  sample_summary[j,1] <- mean(sampler)  # mean
+  standard_error <- sd(sampler)/sqrt(samples1) # standard error
+  sample_summary[j,2] <- mean(sampler) - tval*standard_error # lower 99% CI bound
+  sample_summary[j,3] <- mean(sampler) + tval*standard_error # lower 99% CI bound
+}
+counter = 0
+for(j in 1:nruns){
+  # If 10 is above the lower CI bound and below the upper CI bound:
+  if(10 > sample_summary[j,2] && 10 < sample_summary[j,3]){
+    counter <- counter + 1
+  }
+}
+counter/nruns
+```
+This result shows 99% of CI’s across all of our 1000 runs actually include the true mean in their range even if an uniform distribution is considered.

@@ -1,0 +1,327 @@
+---
+title: "Week_8_9"
+author: "Sharad Bajpai"
+date: "11/20/2019"
+output: 
+  pdf_document: 
+    latex_engine: xelatex
+---
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
+
+```{r comment=NA, message=F}
+library(tidyverse)
+library(MASS)
+library(ggplot2)
+library(stargazer)
+```
+
+**Question 1. Describe your substantive interest and the general questions(s) you would like to answer**
+
+As a Health Informatics student, I am interested in the insurance related data. I want to exlpore whether insurance charges differ based on lifestyle, demographic factors and social determinants. According to me, it is unfair to charge the patients differently based on their weight and BMI. However, we know this is not the truth. People with high BMI and weight tend to get higher insurance charges because of higher risk of diseases associated with these factors.
+
+Thus,
+My Research Hypothesis: $H_1$ = Insurance charges are dependent on the BMI of the individual.
+Null Hyptothesis: $H_0$ = Insurance charges are not dependent on the BMI of the individual.
+
+**Question 2. Describe the data set you have found, including its source, its contents, and why it was collected originally.**
+
+The dataset has been extracted from the Kaggle.com.
+The link to the dataset is https://www.kaggle.com/mirichoi0218/insurance/version/1
+
+The dataset is called as Medical Cost Personal Dataset. And it contains seven variables. The variables are Sex, BMI, Children, Smoker, Region(geographical region) and Charges(Insurance Charges).
+
+In this dataset, four variables (Sex, Children, Smoker, Region) are categorical and three (Age, BMI, Charges) are continuous variables. 
+
+This data was collected orignally as a "Medical Cost Personal Dataset" to predict the insurance charges by linear regression.
+
+```{r}
+library(readr)
+insurance <- read_csv("C:/Users/bajpa/Downloads/Computational Statistics/insurance.csv")
+View(insurance)
+head(insurance)
+```
+
+**Question 3. What is your dependent variable? Why are you interested in explaining it? What do you hypothesize are the major factors that influence or cause it?**
+
+The dependent variable is insurances charges, "charges" in this dataset. I am interested to see what affects the insurance charges for a patient. I know that insurance charges are different for different age ranges, depends on smoking status and the number of children (dependents) but I hypothesize that the sex and region will not affect the insurance premium (charges). The BMI points to underlying diseases and increases costs associated with them and I predict that that will affect the insurance charges. 
+
+
+**Question 4. What are your independent variables, and why have you chosen these? Prior to running your regression, what effects do you expect them to have on the dependent variable? Which of these variables do you think affect other of the independent variables, and how might that affect your final results?**
+
+Some independent variables like 'sex' and 'region' don't seem to have a direct connection with insurance charges. I would not expect them to have any effect on the dependent variable. The other independent variables are 'age', 'children' and 'smoker'. I expect these variables to have an effect on the dependent variable. The independent variable that I am specifically interested in is 'bmi'.
+
+Age and bmi are related to each other (to an extent) and I expect age to falsely affect the relationship of bmi with insurance charges. Similarly, I hypothesize that bmi and region might also be related as different parts of the country have different eating and lifestyle habits. I am not sure if this will change the relationship with insurance charges, though.
+
+**Question 5. Explain and show in detail how you rename and recode the variables you are examining, and what units each are measured in**
+
+I won't rename the variables because the names for the variables are accurate and self-explanatory. Although I can give an example to show that I know how to change the variable names.
+```{r}
+insurance1<-insurance
+names(insurance1)[1]<-"Age"
+head(insurance1)
+```
+
+I will recode sex, smoker and region variables into dummy variables to be used in the regression model as they are categorical variables.
+
+I recoded sex = female as 1 and sex == male automatically became 0. 
+
+I recoded smoker == yes as 1 and smoker == no automatically became 0.
+
+I recoded region == northeast|northwest|southeast as 1 and region == southwest became 0.
+
+Age is a continuous variable measured in years and BMI is a continuous variable measured in kg/$m^2$.
+
+```{r}
+dummy.gender <- as.numeric(insurance$sex == "female")
+insurance$sex <- dummy.gender
+```
+
+```{r}
+dummy.smoker <- as.numeric(insurance$smoker == "yes")
+insurance$smoker <- dummy.smoker
+```
+
+```{r}
+northeast <- ifelse(insurance$region == "northeast", 1, 0)
+northwest <- ifelse(insurance$region == "northwest", 1, 0)
+southeast <- ifelse(insurance$region == "southeast", 1, 0)
+insurance <- cbind(insurance, northeast, northwest, southeast)
+```
+
+**Question 6. Before running a multiple regression, run a few bivariate regressions of Y on some of your X variables. What do you infer? Which of these do you think might change with the addition of multiple variables?**
+
+```{r}
+charges_bmi<-summary(lm(charges ~ bmi, data = insurance))
+charges_bmi
+```
+
+This bivariate regression model shows that BMI does affect insurance charges. I think with the addition of age and region, this dependency might go away. 
+
+```{r}
+charges_ne<-summary(lm(charges ~ northeast, data = insurance))
+charges_ne
+charges_nw<-summary(lm(charges ~ northwest, data = insurance))
+charges_nw
+charges_se<-summary(lm(charges ~ southeast, data = insurance))
+charges_se
+```
+This bivariate regression model shows that there is some association of being in the southeast as compared to being in the southwest with the insurance charges. Including the other variables will probably get rid of this dependency as this seems like it is by pure chance. 
+
+```{r}
+charges_sex<-summary(lm(charges~sex, data=insurance))
+charges_sex
+```
+
+There seems to be an effect of sex on insurance charges which looks odd. Maybe a multiple regression with other variables will get rid of that relationship. 
+
+```{r}
+charges_age<-summary(lm(charges~age, data=insurance))
+charges_age
+```
+
+The bivariate analysis shows a significant association of age with insurance charges, which makes sense because insurance premiums are based on age. 
+
+```{r}
+charges_children<-summary(lm(charges~children, data=insurance))
+charges_children
+```
+
+The number of children affects the insurance premiums. However, the level of significance is not that high. Let us compare that when we run the full regression.
+
+```{r}
+charges_smoker<-summary(lm(charges~smoker, data=insurance))
+charges_smoker
+```
+
+The bivariate analysis shows a significant association of smoking status with insurance charges, which makes sense because insurance premiums are based on smoking status. 
+
+**Question 7. Run your full multiple regression using lm() and present your results using the output from the stargazer R package. Interpret the coefficients. What do they tell you substantively? Which variables seem to have the biggest substantive impact? Which ones could you actually change with some intervention, and how big a difference do you think that could make?**
+
+```{r}
+mr <- lm(charges ~ age + sex + bmi + children + smoker + northeast + northwest + southeast, data = insurance)
+summary(mr)
+```
+
+```{r}
+library(stargazer)
+```
+
+```{r results='asis'}
+vars <- c("Insurance charges","Age","Gender (female)","BMI", "Number of children","Smoker (yes)","Region: Northeast", "Region: Northwest", "Region: Southeast")
+
+stargazer(mr, no.space=TRUE, dep.var.labels=vars[1],
+          covariate.labels=vars[-1], omit.stat=c("LL","ser","f"),
+          notes = c("*1 p<0.05; ** p<0.01; *** p<0.001"), 
+          notes.append = F,
+          header=FALSE)
+```
+
+The coefficients for smoker, age, bmi and children show that one unit of change in them is significantly associated with change in insurance charges. The coefficients vary so much because they are in different units. Based on the p-value, all 4 of them seem to have an impact on insurance charges. I am not sure if getting rid of variables like sex and region will make a difference but it would be interesting to check.
+
+**Question 8. How have any of the coefficients changed from the bivariate regressions? What can you infer from that? How do you think your various independent variables interact and affect each other? Try to find an example where a variable appears signficant in the bivariate regression, but not in the full regression. Is this an example of a spurious or a chained causal pathway?**
+```{r}
+coef(mr)
+coef(charges_bmi)
+coef(charges_age)
+coef(charges_children)
+coef(charges_ne)
+coef(charges_nw)
+coef(charges_se)
+coef(charges_sex)
+coef(charges_smoker)
+
+```
+The coefficients for northeast and northwest is higher in multivariate. Whereas all the other variables decreased from the bivariate regression. 
+
+The effect of northwest with insurance charges had a negative relationship in the bivariate regression model. However, in the multiple regression model, it changed to a positive relationship. In both cases, it was not significant. 
+
+Most of the independent variables like age, smoking status and number of children are significantly associated with insurance charges. 
+
+The effect of number of children increased when the full regression was run. It is possible that age and number of children have a relationship.
+
+The association of sex with insurance charges changed from significant to non-significant from the bivariate regression to the full regression (whew!). Sex is not affected by anything so I don't think this was due to an effect of any causal pathway. 
+
+**Question 9. How does what you see match, or not, your hypotheses from (4)? Why did/didn't it match what you expected?**
+
+The independent variables that I predicted would affect insurance charges match what I expected in question 4. However, my hypothesis that there would be an association of BMI with insurance charges turned out to be true. There is a strong association of BMI with insurance charges which is most likely due to other factors like chronic diseases. 
+
+**question 10. What do the R2 and adjusted R2 tell you about your model?**
+
+The $R^2$ and adjusted $R^2$ tell me that my model is quite good and the addition of variables to the model has not affected the fit of it. 
+
+**Question 11. How would you use one of the variable selection methods to choose a model with fewer variables? Select one of the methods (either one of the stepwise or criterion-based methods) and show which variables it would lead you to keep. Do you agree with its results?**
+
+I would select a backward approach as I knew that 3 of the variables do have a significant relationship with insurance charges. I would remove sex as it has no affect on the regression model. I would also try and remove the regions which do not have a significant association with the regression model to see if it affects the regression model in any way. 
+
+```{r}
+mr1 <- lm(charges ~ age + bmi + children + smoker + northeast, data = insurance)
+summary(mr1)
+```
+**Question 12. What are your overall conclusions? What are the weaknesses of your results, and how could you improve them with better or different data?**
+
+The final model has an $R^2$ of 0.75 and shows that age, bmi, number of children and smoking status along with being in the northeast region of the country (as compared to being in the southwest) has an effect on insurance charges. 
+
+The data is just reiterating what insurance policies already tell us and tells us nothing new except that insurance charges are higher in the northeast as compared to the southwest. It might be interesting iin the future to include any diseases that the individual has and see if there is any correlation with BMI and then control for the effect of a disease. 
+
+**Question 13. Using R**
+**a) Derive the coefficients from your regression using the $(X`X)^(-1)X`Y$ formula**
+
+```{r}
+xmat <- as.matrix(cbind(insurance$age, insurance$bmi, insurance$children, insurance$smoker, insurance$northeast))
+xmat <- cbind(1, xmat)
+a <- t(xmat)%*%xmat
+b <- ginv(a)
+b%*%(t(xmat)%*%insurance$charges)
+```
+
+The manually derived coefficients match that from the regression model
+
+**b) For one of the coefficients, confirm its p value as shown in the regression output using the coefficient, its standard error, and pt() in R.**
+
+Confirming the p value as shown in regression output using the coefficient, standard error, and pt() in R
+```{r}
+BMI_C<-393.87
+SE<-53.25
+df<-1336
+tStatistic<- BMI_C/SE
+P_value <- 2*(1-pt(tStatistic,df))
+P_value
+```
+
+**c) Calculate the R2 and adjusted R2 using R, and confirm that your results match the regression output.**
+
+Calculations for $R^2$
+```{r}
+ypred <- predict(mr1)
+y <- insurance$charges
+tss <- sum((y - mean(y))^2)
+sse <- sum((y-ypred)^2)
+r2 <- (tss-sse)/tss
+r2
+```
+
+Calculations for adjusted $R^2$
+```{r}
+n <- length(y)
+k <- ncol(xmat)-1
+dft <- n - 1
+dfe <- n - k - 1
+(tss/dft - sse/dfe)/ (tss/dft)
+``` 
+
+The values match that from the regression model.
+
+**d)  Calulate the F statistic using R and confirm it against the regression output.**
+
+```{r}
+f <- (r2/k) / ((1-r2)/(n-k-1))
+f
+```
+
+The F-statistic matches that of the regression model.
+
+**Question 14. Add at least one quadratic term into your model and interpret the results. Is it significant? What is the effect of a 1-unit increase in that variable at its mean value?**
+
+```{r}
+mr2 <- lm(charges ~ age + sex + bmi + children + smoker + northeast + northwest + southeast + I(bmi^2), data = insurance)
+summary(mr2)
+```
+
+```{r}
+charges <- 797.744*insurance$bmi + -7.288*insurance$bmi*insurance$bmi + -19950.063
+df <- data.frame(charges, insurance$bmi)
+ggplot(df, aes(x=insurance.bmi, y=charges)) + geom_point() + geom_smooth(method=lm)
+```
+
+
+Adding a quadratic BMI term to the model makes vey slight difference to the model. The quadratic model does seem to look reasonably quadratic and there is a significant effect of a 1-unit increase in the quadratic BMI term as well but it doesn't seem significant enough to the model as BMI by itself has a stronger effect. 
+
+**QUestion 15. Add at least one interaction term to you model and interpret the results. Is it significant? What is the effect of a 1-unit increase in one of those interacted variables holding the other at its mean value?**
+
+I am assuming that the effect of bmi and being in the northeast are amplified when they occur together. I am adding that as an interaction term to my model. 
+
+```{r}
+mr3 <- lm(charges ~ age + bmi + children + smoker + northeast + bmi*northeast, data = insurance)
+summary(mr3)
+```
+
+With the addition of the interaction term, the significant effect of being in the northeast compared to being in the southwest disappears. The interaction term however shows a slight significance in the regression model. Maybe the bmi and being in the northeast do interact with each other (interestingly). 
+
+**Question 16. Test either the model in 14 or the model in 15 using the F test for nested models**
+
+I am compaaring the interaction model with the model in Question 11.
+
+$H_0$: The interaction model does no better than the reduced original model
+
+$H_1$: The interaction model performs better than the reduced original model
+
+F = $\frac{\frac{(R^2_i - R^2_r)}{df_1}}{\frac{(1-R^2_i)}{df_2}}$
+
+$df_1$ = number of additional variables = 1
+
+$df_2$ = n-k-1 = 1331
+
+F = $\frac{\frac{0.7512-0.7504}{1}}{\frac{1-0.7512}{1331}}$
+
+= $\frac{0.0008}{0.0001869271}$
+
+= 4.279743
+
+```{r}
+pf(4.279743, 1, 1331, lower.tail = F)
+```
+
+The p-value is less than 0.05 which implies that we would have to reject our null hypothesis and accept that the interaction term model performs better than the originally reduced model. 
+
+Thus, including the interaction term between bmi and the northeast region has improved the model significantly. This is an interesting finding.
+
+I will conclude that along with the known factors that determine insurance charges (age, number of children and smoking status), BMI also determines insurance charges and being in the northeast and having a higher BMI influences the insurance charges as well.
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
+
+

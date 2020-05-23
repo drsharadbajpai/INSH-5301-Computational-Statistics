@@ -1,0 +1,253 @@
+---
+title: "Week5_CompStats"
+author: "Sharad Bajpai"
+date: "10/14/2019"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document:
+    df_print: paged
+---
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
+
+1.
+You hypothesize that the average person is smarter than Sarah Palin. You know her IQ is 100.
+You give an IQ test to 100 randomly selected people, and get a mean of 104 and standard deviation
+of 22. Please show your work for each question.
+
+a. What is your null hypothesis?
+$H_0=\mu=100$
+  
+b. What is your research hypothesis?
+$H_a = \mu>100$
+
+c. What is your test statistic?
+
+$Sample:n=100, \bar{x}=104, s=22, se=\frac{s}{\sqrt{n}} =2.2$
+$Test Statistic=\frac{\bar{x}-\mu_{population}}{se}$
+$Test Statistic=\frac{104-100}{2.2}=1.82$
+
+d. Do you prefer a one-tailed or two-tailed test here, and why?
+
+One-tailed test should be good here because of the question and the alternative hypothesis. In the question, the sample mean and standard deviation are already given, and the mean is slightly higher than 100.
+However, I would prefer to do the “two-tailed test”" first here to be more conservative. Once we rejected the Null hypothesis for the two tailed test, we would be assured to get the same result for one-tailed test.
+
+e. What is your α and threshold (t statistic) value or values for your rejection region? (Whatever α you prefer is fine, just be sure to state it and explain why you chose it.)
+alpha=0.05, I chose the 0.05 alpha level because it's standard, and implies that the sample mean will have a $1/20$ chance of being outside the expected range. Given the high standard deviation, it's intuitively highly unlikely that the alternative hypothesis will be supported at the 0.01 level. The 0.1 alpha level allows for the conclusion to be inaccurate 1 in 10 times. The middle ground, or a 0.05 alpha level seems appropriate.
+Now lets calculate the threshold(t statistic)values for the rejection region:
+```{r}
+lower_limit <- qt ( 0.025, 99)
+print(lower_limit)
+
+upper_limit<- qt(0.975, 99)
+print(upper_limit)
+```
+
+f. Can you reject the null under a one-tailed test?
+Let's try with the one tailed t test which looks sufficient for this hypothesis and lets keep p-value as 0.95:
+ 
+```{r}
+upper <- qt(0.95,99)
+upper
+```
+Here, TestStatistic = 1.82 > upper(1.66), so we can reject the null hypothesis which will be a Type I error. 
+
+g. Can you reject the null under a two-tailed test?
+
+Since $-1.98 < 1.82 < 1.98$  (from Q1.e)
+
+We are NOT able to reject the null hypothesis with the specifications we have defined.(p-value=0.95 and two tailed). With a two-tailed test we fail to reject the null hypothesis.
+
+
+h. What is your 95% confidence interval?
+$CI_{0.95} = [\bar{x} - 1.959964*se, \bar{x}\\+ 1.959964*se]$
+$z_{0}=(\bar{x}-\mu_{0})/\sigma$
+$z_{0}=1.82$
+$-z_{\alpha/2}\leqslant z_{0} \leqslant z_{\alpha/2}$
+Therefore, 
+$CI_{0.95}=-z_{0.025}\leqslant z_{0} \leqslant z_{0.05}$
+
+```{r}
+lower<-qnorm(0.025)
+lower
+upper<-qnorm(0.975)
+upper
+```
+$CI_{0.95}=-1.96\leqslant 1.82 \leqslant 1.96$
+
+i. What is the p-value for your test results?
+
+For a 2-sided test, p value will be:
+$P-value = 2[1-\Phi(Z_{0})]$
+$P-value = 2[1-\Phi(1.82)] = 0.0688$
+
+2.
+You hypothesize that men and women have different skill levels in playing Tetris. To test this, you have 50 men and 50 women play the game in a controlled setting. The mean score of the men is 1124 with a standard deviation of 200 and the mean score for the women is 1245, also with a standard deviation of 200.
+
+a. Are these scores statistically significantly different? Show your work.
+
+Men's sample: $n_1=50, \bar{x}_1=1124, s_1=200, se_1=\frac{s_1}{\sqrt{n_1}} =28.29$
+
+Women's sample: $n_2=50, \bar{x}_2=1245, s_2=200, se_2=\frac{s_2}{\sqrt{n_2}} =28.29$
+
+$H_{0}={Men\;and\;Women\;have\;the\;same\;skill\;levels\;in\;playing\;Tetris.}$
+
+$H_{a}={Men\;and\;Women\;have\;the\;different\;skill\;levels\;in\;playing\;Tetris.}$
+
+Parameters for T-distribution:
+
+$Test Statistic= \frac{\bar{x}_2-\bar{x}_1}{se_diff}$
+
+$se_diff=sqrt(se_1^2+se_2^2)=40$
+
+so,
+
+$Test Statistic= \frac{1245-1124}{40}=3.025$
+
+Since n1=n2 and s1=s2, degree of freedom is calcuated as :
+
+$df=2n-2=98$
+
+Let's consider alpha=0.05 and calculate the T-statistic values for the rejection region:
+```{r}
+Q2 <- qt(c(0.025,0.975),98)
+Q2
+```
+
+b. Do you reject your hypothesis or the null? What do you conclude from this experiment?
+
+Since the Test Statistic (3.025) does not lie in the region (Q2)[-1.98,+1.98] ie. it lies in the rejected area and hence we reject the Null Hypothesis and accept the Alternate hypothesis.
+
+From this experiment we conclude that, Men and Women have different skill level in playing Tetris.
+
+3.
+You think drinking the night before an exam might help performance on the exam the next
+morning. To test this, you select 100 of your closest friends, and randomly get 50 of them drunk
+the night before the exam, which you denote the treatment group. The next day, the treatment
+group gets a mean of 78 with a standard deviation of 10 and the control group gets a 75 with a
+standard deviation of 5.
+
+$H_{0}={Drinking\;the\;night\;before\;exam\;helps\;our\;performance\;on\;exam\;next\;morning.}$
+
+$H_{a}={Drinking\;the\;night\;before\;exam\;does\;not\;helps\;performance\;on\;exam\;next\;morning.}$
+
+Treatment Sample:
+
+$n_1=50, \bar{x}_1=78, s_1=10, se_1=\frac{s_1}{\sqrt{n_1}} =1.41$
+
+Control Sample:
+
+$n_2=50, \bar{x}_2=75, s_2=5, se_2=\frac{s_2}{\sqrt{n_2}} =0.71$
+
+Parameters of T-distribution of the samples:
+
+$Test Statistic= \frac{\bar{x_2}-\bar{x_1}}{se_{diff}}$
+
+$se_{diff}=sqrt(se_1^2+se_2^2)=1.58$
+
+$Test Statistic= \frac{78-75}{1.58}=1.90$
+
+Now, degrees of freedom(df):
+
+$df=\frac{se_{diff}^{4}}{se_{a}^{4}/(n_{a}-1) + se_{b}^{4}/(n_{b}-1)}$
+
+$df=\frac{(1.58)^4}{\frac{(1.41)^4}{50-1}+\frac{(0.71)^4}{50-1}}=73$
+
+lets assume alpha=0.05 and c alculate the T statitic values for rejection region:
+```{r}
+Q3 <- qt(c(0.025,0.975),73)
+Q3
+```
+
+$-1.99<Test Statistic(1.90) <1.99$
+
+Thus, we cannot reject Null Hypothesis.
+Hence, we conclude that drinking the night before exam doesnot help performance on the next morning.
+
+4.
+Using data of your choosing (or using simulated data), use R to conduct the following tests, and
+explain the results you get:
+
+a. A standard one-sample hypothesis test.
+```{r}
+datasets::cars
+t.test(cars$dist,alternative="two.sided",mu=60)
+```
+Here, in the cars dataset, we have, Null Hypothesis 
+$H_{0}: \mu=60$
+Since, p value < alpha (0.05), we reject the null hypothesis.
+We can see that the T statistic is (35.65, 50.30) and a good estimate for 
+$\mu=42.98$
+
+b. A difference-in-means test with independent samples.
+```{r}
+Non_Drinkers <- c(18,22,21,17,20,17,23,20,22,21)
+Drinkers <- c(16,20,14,21,20,18,13,15,17,21)
+t.test(Non_Drinkers,Drinkers,mu=0,conf=0.95,alternative="two.sided")
+```
+Here the numbers are related to  expriment scores for people who are drinkers and non-drinkers. We want to see if being a drinker would affect the cases of obesity.
+
+Here, the Null hypothesis, 
+$H_{0}:\mu=0$
+However, since the T statistic has the rejection area P(0.162<mu<5.03)
+so, which doesnot lie in it and hence, Null hypothesis can be rejected.
+A good estimate for 
+$\mu=20.1-17.5=2.6$
+
+c. A difference-in-means test with dependent samples (ie, a paired t-test).
+```{r}
+# Weight of the mice before treatment
+before_exp <-c(222, 191.4, 202.1, 213.5, 180, 167.4, 199.1, 189.3, 202.4, 186.3)
+# Weight of the mice after treatment
+after_exp <-c(387, 400.2, 376, 393.1, 397.3, 417.4, 407.4, 374.4, 364.6, 378.2)
+# Compute t-test
+t.test(before_exp, after_exp, paired = TRUE)
+```
+As we can see that the p value is significantly less than alpha,
+hence we reject Null hypothesis.
+
+d. Manually verify the results in (a) using the mean and sd as calculated by R (ie, you don’t have to manually calculate the mean or sd by hand!).
+
+```{r}
+x_bar <- mean(cars$dist)
+x_bar
+```
+
+```{r}
+std_dv <- sd(cars$dist)
+std_dv
+```
+
+```{r}
+n <- length(cars$dist)
+n
+```
+```{r}
+se <- std_dv/(sqrt(n))
+se
+```
+```{r}
+mu <- 60
+z <- (x_bar - mu)/se
+z
+```
+```{r}
+low_int <- qt(0.025,n-1)
+low_int
+high_int <-qt(0.975,n-1)
+high_int
+```
+```{r}
+low_CI <- ((low_int)*se)+x_bar
+low_CI
+high_CI <- ((high_int)*se)+x_bar
+high_CI
+```
+
+This verifies the results from part a and Null hypothesis can be rejected since mu lies in the rejected area.
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
